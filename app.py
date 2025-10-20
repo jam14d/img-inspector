@@ -4,6 +4,8 @@ from typing import Optional, List, Tuple
 
 import numpy as np
 from PIL import Image, ImageOps
+from pathlib import Path
+
 import streamlit as st
 import plotly.graph_objs as go
 import matplotlib.pyplot as plt
@@ -258,11 +260,11 @@ def build_array_cube(arr: np.ndarray,
 st.set_page_config(page_title="Image Inspector", layout="wide")
 
 st.title("Image Inspector")
-st.caption("Upload an image, try simple processing, explore channels.")
 
 with st.sidebar:
     st.subheader("Input")
-    file = st.file_uploader("Image (PNG/JPG/WebP)", type=["png","jpg","jpeg","webp"])
+    use_sample = st.checkbox("Use sample image")
+    file = st.file_uploader("Image", type=["png","jpg","jpeg","webp"], disabled=use_sample)
 
     st.subheader("Downsample")
     max_dim = st.slider("Max dimension", 16, 256, 96)
@@ -271,10 +273,10 @@ with st.sidebar:
     st.subheader("Color space")
     colorspace = st.selectbox("Color space", ["RGB", "GRAY", "HSV"], index=0)
 
-    st.subheader("3D view")
-    point_size = st.slider("Point size", 1, 6, 3)
-    opacity = st.slider("Point opacity", 0.1, 1.0, 0.85)
-    color_mode = st.selectbox("Cube color mode", ["per_channel", "pixel"], index=0)
+    # st.subheader("3D view")
+    # point_size = st.slider("Point size", 1, 6, 3)
+    # opacity = st.slider("Point opacity", 0.1, 1.0, 0.85)
+    # color_mode = st.selectbox("Cube color mode", ["per_channel", "pixel"], index=0)
 
     st.subheader("Processing")
     apply_ops_enable = st.toggle("Enable processing", value=False)
@@ -290,9 +292,21 @@ with st.sidebar:
     sharp_amt = st.slider("Sharpen amount", 0.0, 3.0, 1.0)
     sharp_rad = st.slider("Sharpen radius", 1, 9, 3, step=2)
 
+
+# Pick uploaded file or the built-in sample
+if use_sample:
+    sample_path = Path(__file__).parent / "images" / "melaniethecat.JPG"
+    if not sample_path.exists():
+        st.error(f"Sample image not found at: {sample_path}")
+        st.stop()
+    # Open as a file-like object so the rest of the pipeline is unchanged
+    file = open(sample_path, "rb")
+    st.caption("Using sample image: images/melaniethecat.JPG")
+
 if not file:
-    st.info("Upload an image to begin.")
+    st.info("Upload an image or enable sample image to begin.")
     st.stop()
+
 
 # Load and prepare
 orig_img = load_image(file)
@@ -330,7 +344,7 @@ with col1:
     st.image(orig_img, use_container_width=True)
     st.text(f"{orig_img.mode} | {orig_img.size[0]} × {orig_img.size[1]}")
 with col2:
-    st.subheader("Downsampled / Processed")
+    st.subheader("Processed")
     st.image(arr_proc if arr_proc.ndim == 2 else Image.fromarray(arr_proc), use_container_width=True)
     shape_text = f"{arr_proc.shape} (H, W)" if arr_proc.ndim == 2 else f"{arr_proc.shape} (H, W, C)"
     st.text(f"{colorspace} array | shape: {shape_text}")
