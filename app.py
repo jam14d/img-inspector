@@ -258,7 +258,7 @@ def build_array_cube(arr: np.ndarray,
 st.set_page_config(page_title="Image Inspector", layout="wide")
 
 st.title("Image Inspector")
-st.caption("Upload an image, downsample it, try simple processing per channel, explore channels, and see a 3D array visualization.")
+st.caption("Upload an image, try simple processing, explore channels.")
 
 with st.sidebar:
     st.subheader("Input")
@@ -276,7 +276,7 @@ with st.sidebar:
     opacity = st.slider("Point opacity", 0.1, 1.0, 0.85)
     color_mode = st.selectbox("Cube color mode", ["per_channel", "pixel"], index=0)
 
-    st.subheader("Processing (applies to selected channels)")
+    st.subheader("Processing")
     apply_ops_enable = st.toggle("Enable processing", value=False)
     target = st.selectbox("Apply to", ["All channels", "Red", "Green", "Blue"], index=0)
     brightness = st.slider("Brightness", -100, 100, 0)
